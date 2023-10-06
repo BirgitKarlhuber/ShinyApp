@@ -32,12 +32,10 @@ ui <- fluidPage(theme = shinytheme("lumen"),
                   
                   # Output: Visualization and reference
                   mainPanel(
-                    plotOutput(outputId = "visualization"),
+                    plotOutput("visualization"),
                     tags$a(href = "https://www.thenmap.net/",
                            "Source: Thenmaps", 
                            target = "_blank")
-                    
-                    
                     
                   )
                 )
@@ -46,9 +44,8 @@ ui <- fluidPage(theme = shinytheme("lumen"),
 # Define server function
 server <- function(input, output){
   
+  # get requested data from the Thenmaps API (with the help of the Lab5 package)
   selected_data <- reactive({
-    
-    # get requested data from the Thenmaps API (with the help of the Lab5 package)
     data <- Lab5::request_API(input$dataset, input$date)
   })
   
@@ -56,8 +53,7 @@ server <- function(input, output){
     
     ggplot() +
       geom_sf(data = selected_data()) +
-      ggtitle("Map") +
-      theme_minimal()
+      theme_minimal() 
   })
   
 }
