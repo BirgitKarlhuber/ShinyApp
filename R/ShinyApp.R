@@ -1,75 +1,67 @@
 
 
+# Load packages
+
+# install.packages("shiny")
+# install.packages("shinythemes")
+# devtools::install_github("BirgitKarlhuber/Lab5", force=TRUE)
+
 library(shiny)
 library(shinythemes)
+library(dplyr)
+library(ggplot2)
 library(Lab5)
 
-ShinyApp <- function(){
-  
-  # Define UI
-  ui <- fluidPage(theme = shinytheme("lumen"),
-                  titlePanel("Thenmaps - Dataselection"),
-                  sidebarLayout(
-                    sidebarPanel(
-                      
-                      # Select version for request
-                      dateInput(inputId = "Version", label = strong("Version"),
-                                choices = c("v1","v2")),
-                      
-                      # Select dataset for request
-                      selectInput(inputId = "Dataset", label = strong("Dataset"),
-                                  choices = unique(train$Location)),
-                      
-                      # Select modules for request
-                      numericInput(inputId = "Modules", label = strong("Modules"), 
-                                   choices = c("data","geo")), 
-                      
-                      # Select date for request
-                      numericInput(inputId = "Date", label = strong("Date ...."), 
-                                   format = "yyyy-mm-dd", min = "2007-11-01", max = "2030-12-31")), 
-                      
-                      # Select language for request
-                      numericInput(inputId = "Language", label = strong("Language"), 
-                                   min = 0, max = 2000, verbatimTextOutput("value")),
-                      
-                      submitButton("Start")
-                      
-                    ),
+# Define UI
+ui <- fluidPage(theme = shinytheme("lumen"),
+                titlePanel("Thenmaps - Dataselection"),
+                sidebarLayout(
+                  sidebarPanel(
                     
-                    # Output: Description and reference
-                    mainPanel(
-                      textOutput(outputId = "prediction"),
-                      tags$a(href = "http://www.bom.gov.au/",
-                             "Source: Bureau of Meteorology of the Australian Government", 
-                             target = "_blank")
-                    )
+                    # Select dataset for request
+                    selectInput(inputId = "dataset", label = strong("Dataset is a area-level"),
+                                choices = c("world-2", "ch-8", "no-7", "no-4", "dk-7", "se-7", "se-4", "us-4", "gl-7")),
+                    
+                    # Select date for request
+                    dateInput(inputId = "date", label = strong("Date"), 
+                              format = "yyyy-mm-dd", min = "1900-11-01", max = "2030-12-31"), 
+                    
+                    submitButton("Start")
+                    
+                  ),
+                  
+                  # Output: Visualization and reference
+                  mainPanel(
+                    plotOutput(outputId = "visualization"),
+                    tags$a(href = "https://www.thenmap.net/",
+                           "Source: Thenmaps", 
+                           target = "_blank")
+                    
+                    
+                    
                   )
-  )
+                )
+)
+
+# Define server function
+server <- function(input, output){
   
-  # Define server function
-  server <- function(input, output) {
+  selected_data <- reactive({
     
-    #   validate(need(input$MaxTemp < input$MinTemp, "Error: Minimum temperature have to be smaller than maximum temperature."))
+    # get requested data from the Thenmaps API (with the help of the Lab5 package)
+    data <- Lab5::request_API(input$dataset, input$date)
+  })
+  
+  output$visualization <- renderPlot({
     
-    
-    # get requested data from the Thenmaps API  
-    data <- Lab5::request_API(input$version,input$dataset,input$modules,input$date,input$language)
-      
-    # depending on the modules create output (data - table, geo - plot)
-    if(input$modules == "data"){
-      
-      # create table of data 
-      output$table <- renderTable({
-        
-        
-      })
-    } else if(input$modules == "geo"){
-      # create plot of geo-data
-      output$graph <- renderPlot({
-        Lab5::geo_plot(data)
-      })
-    }
-    
-  # Create Shiny object
-  shinyApp(ui = ui, server = server)
+    ggplot() +
+      geom_sf(data = selected_data()) +
+      ggtitle("Map") +
+      theme_minimal()
+  })
+  
 }
+
+# Create Shiny object
+shinyApp(ui = ui, server = server)
+
