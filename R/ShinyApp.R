@@ -25,7 +25,7 @@ ui <- fluidPage(theme = shinytheme("lumen"),
                     
                     # Select date for request
                     dateInput(inputId = "date", label = strong("Date"), 
-                              format = "yyyy-mm-dd", min = "1900-11-01", max = "2030-12-31"), 
+                              format = "yyyy-mm-dd", min = "1900-01-01", max = "2030-12-31"), 
                     
                     submitButton("Start")
                   ),
